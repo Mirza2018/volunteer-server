@@ -50,10 +50,20 @@ async function run() {
             const result = await donationCollection.insertOne(infos);
             res.send(result)
         })
+
         app.get('/volunteerpage', async (req, res) => {
-            const result = await donationCollection.find().toArray()
+            let query = {}
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+            const result = await donationCollection.find(query).toArray()
             res.send(result)
+
         })
+        // app.get('/adminpage', async (req, res) => {
+        //     const result = await donationCollection.find().toArray()
+        //     res.send(result)
+        // })
 
 
         // Send a ping to confirm a successful connection
