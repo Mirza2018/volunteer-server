@@ -50,9 +50,25 @@ async function run() {
         const volunteerCollection = client.db("volunteerDB").collection("volunteer");
         const donationCollection = client.db("volunteerDB").collection("donation");
 
+        // app.get('/volunteer', async (req, res) => {
+        //     const result = await volunteerCollection.find().toArray();
+        //     res.send(result)
+        // })
+
         app.get('/volunteer', async (req, res) => {
-            const result = await volunteerCollection.find().toArray();
+            const page = parseInt(req.query.page) || 0;
+            const limit = parseInt(req.query.limit) || 10;
+            const skip = page * limit;
+            const result = await volunteerCollection.find().skip(skip).limit(limit).toArray();
             res.send(result)
+        })
+        
+
+
+
+        app.get('/totalproducts', async (req, res) => {
+            const result = await volunteerCollection.estimatedDocumentCount();
+            res.send({ totalProducts: result })
         })
 
         app.get('/volunteer/:id', async (req, res) => {
