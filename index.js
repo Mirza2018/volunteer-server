@@ -82,7 +82,7 @@ async function run() {
 
         })
         app.get('/adminpage', varifyJWT, async (req, res) => {
-           
+
             let query = {}
             if (req.query?.email) {
                 query = { email: req.query.email }
@@ -117,7 +117,11 @@ async function run() {
             res.send({ token })
         })
 
-
+        app.post('/addnew', async (req, res) => {
+            const item = req.body;
+            const result = await volunteerCollection.insertOne(item)
+            res.send(result)
+        })
 
 
 
