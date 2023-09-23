@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const app = express();
+var jwt = require('jsonwebtoken');
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
@@ -23,6 +24,23 @@ const client = new MongoClient(uri, {
         deprecationErrors: true,
     }
 });
+
+
+const varifyJWT = (req, res, next) => {
+    const authorization = req.headers.authorization;
+    if (!authorization) {
+        return res.status(401).send({ error: true, message: "Unouthorizad Access" })
+    }
+    const token = authorization.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
+        if (error) {
+            return res.status(403).send({ erroe: true, message: "Unouthorized Acccess" })
+        }
+        req.decoded = decoded;
+        next();
+    })
+}
+
 
 async function run() {
     try {
@@ -51,7 +69,20 @@ async function run() {
             res.send(result)
         })
 
-        app.get('/volunteerpage', async (req, res) => {
+        app.get('/volunteerpage', varifyJWT, async (req, res) => {
+            if (req.decoded.email !== req.query.email) {
+                return res.send({ error: 1, message: 'Forbitten Access' })
+            }
+            let query = {}
+            if (req.query?.email) {
+                query = { email: req.query.email }
+            }
+            const result = await donationCollection.find(query).toArray()
+            res.send(result)
+
+        })
+        app.get('/adminpage', varifyJWT, async (req, res) => {
+           
             let query = {}
             if (req.query?.email) {
                 query = { email: req.query.email }
@@ -79,6 +110,14 @@ async function run() {
             const result = await donationCollection.deleteOne(filter);
             res.send(result)
         })
+
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN)
+            res.send({ token })
+        })
+
+
 
 
 
