@@ -1,4 +1,5 @@
 const express = require('express');
+// import express from 'express';
 const cors = require('cors');
 const app = express();
 var jwt = require('jsonwebtoken');
@@ -10,20 +11,8 @@ app.use(cors())
 app.use(express.json())
 
 app.get('/', (req, res) => {
-    res.send("Server is On")
+    res.send("volunteer server is On")
 })
-
-
-const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.4fvtstz.mongodb.net/?retryWrites=true&w=majority`;
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-    serverApi: {
-        version: ServerApiVersion.v1,
-        strict: true,
-        deprecationErrors: true,
-    }
-});
 
 
 const varifyJWT = (req, res, next) => {
@@ -42,10 +31,22 @@ const varifyJWT = (req, res, next) => {
 }
 
 
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.4fvtstz.mongodb.net/?retryWrites=true&w=majority`;
+
+// Create a MongoClient with a MongoClientOptions object to set the Stable API version
+const client = new MongoClient(uri, {
+    serverApi: {
+        version: ServerApiVersion.v1,
+        strict: true,
+        deprecationErrors: true,
+    }
+});
+
 async function run() {
     try {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
+    //    client.connect();
 
         const volunteerCollection = client.db("volunteerDB").collection("volunteer");
         const donationCollection = client.db("volunteerDB").collection("donation");
@@ -73,7 +74,7 @@ async function run() {
 
         app.get('/volunteer/:id', async (req, res) => {
             const id = req.params.id;
-            console.log(id);
+            // console.log(id);
             const filter = { _id: new ObjectId(id) }
             const result = await volunteerCollection.findOne(filter);
             res.send(result)
@@ -151,6 +152,9 @@ async function run() {
 }
 run().catch(console.dir);
 
+// app.listen(port, () => {
+//     console.log("port no is", port);
+// })
 app.listen(port, () => {
-    console.log("port no is", port);
-})
+    console.log(`volunteer is on port ${port}`);
+  })
