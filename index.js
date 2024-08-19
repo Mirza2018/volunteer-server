@@ -3,6 +3,8 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 var jwt = require('jsonwebtoken');
+
+
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 require('dotenv').config()
 const port = process.env.PORT || 5000;
@@ -10,25 +12,7 @@ const port = process.env.PORT || 5000;
 app.use(cors())
 app.use(express.json())
 
-app.get('/', (req, res) => {
-    res.send("volunteer server is On")
-})
 
-
-const varifyJWT = (req, res, next) => {
-    const authorization = req.headers.authorization;
-    if (!authorization) {
-        return res.status(401).send({ error: true, message: "Unouthorizad Access" })
-    }
-    const token = authorization.split(' ')[1];
-    jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
-        if (error) {
-            return res.status(403).send({ erroe: true, message: "Unouthorized Acccess" })
-        }
-        req.decoded = decoded;
-        next();
-    })
-}
 
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.4fvtstz.mongodb.net/?retryWrites=true&w=majority`;
@@ -55,6 +39,41 @@ async function run() {
         //     const result = await volunteerCollection.find().toArray();
         //     res.send(result)
         // })
+
+
+
+        app.post('/jwt', (req, res) => {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN)
+            res.send({ token })
+        })
+
+
+
+
+
+        const varifyJWT = (req, res, next) => {
+            const authorization = req.headers.authorization;
+            if (!authorization) {
+                return res.status(401).send({ error: true, message: "Unouthorizad Access" })
+            }
+            const token = authorization.split(' ')[1];
+            jwt.verify(token, process.env.ACCESS_TOKEN, (error, decoded) => {
+                if (error) {
+                    return res.status(403).send({ erroe: true, message: "Unouthorized Acccess" })
+                }
+                req.decoded = decoded;
+                next();
+            })
+        }
+
+
+
+
+
+
+
+
 
         app.get('/volunteer', async (req, res) => {
             const page = parseInt(req.query.page) || 0;
@@ -128,11 +147,6 @@ async function run() {
             res.send(result)
         })
 
-        app.post('/jwt', (req, res) => {
-            const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN)
-            res.send({ token })
-        })
 
         app.post('/addnew', async (req, res) => {
             const item = req.body;
@@ -155,6 +169,15 @@ run().catch(console.dir);
 // app.listen(port, () => {
 //     console.log("port no is", port);
 // })
+
+
+app.get('/', (req, res) => {
+    res.send("volunteer server is On")
+})
+
+
+
+
 app.listen(port, () => {
     console.log(`volunteer is on port ${port}`);
   })
